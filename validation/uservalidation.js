@@ -21,4 +21,15 @@ const resendOTPSchema = joi.object({
     email: joi.string().email().required(),
 });
 
-module.exports={loginSchema,verifySchema,signinSchema,resendOTPSchema}
+
+const fogetPsswordSchema = joi.object({
+    email: joi.string().email().required(),
+});
+
+const restPasswordSchema =joi.object({
+    passwordToken:joi.string().required(),
+    newPassword: joi.string().min(4).required()
+
+})
+
+module.exports={loginSchema,verifySchema,signinSchema,resendOTPSchema,fogetPsswordSchema,restPasswordSchema}

@@ -1,10 +1,11 @@
 const express = require("express")
 const bcrypt = require("bcrypt")
+const crypto = require("crypto")
 const jwt = require("jsonwebtoken")
 const otpGenerator = require('otp-generator')
 const dotenv = require("dotenv").config()
 
-const { loginSchema, verifySchema, signinSchema, resendOTPSchema } = require("../validation/uservalidation")
+const { loginSchema, verifySchema, signinSchema, resendOTPSchema, fogetPsswordSchema, restPasswordSchema } = require("../validation/uservalidation")
 const { User } = require("../modle/user")
 const { sendEmail } = require("../utils/sendEmail")
 const router = express.Router()
@@ -148,5 +149,69 @@ router.post("/resend-otp", async function (req, res) {
     }
 })
 
+router.post("/forget-password", async function (req, res) {
+    try {
+        const { value, error } = fogetPsswordSchema.validate(req.body, { abortEarly: false })
+
+        if (error) {
+            res.status(400).json({ message: error.details.map(e => e.message) })
+        }
+        const { email } = req.body
+
+        const existUser = await User.findOne({ email })
+
+        if (!existUser) {
+            res.status(400).json({ message: "WRONG EMAIL" })
+        }
+
+        const forgetPasswordOTP = crypto.randomBytes(32).toString("hex")
+        const forgetPasswordotpExpires = Date.now() + 1000 * 60 *5
+
+        existUser.forgetPasswordOTP = forgetPasswordOTP
+        existUser.forgetPasswordotpExpires = forgetPasswordotpExpires
+
+        await existUser.save()
+
+        const resetURL = `${process.env.CLIENT_ORIGIN}/reset-password/${forgetPasswordOTP}`
+
+        await sendEmail(email, "Reset password", `to reset password click this mail: ${resetURL}`)
+
+        res.status(201).json({ message: " sent to ur inbox reset password link" })
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "internal server error" })
+    }
+})
+
+router.post("/reset-password", async function (req, res) {
+    try {
+        const { value, error } = restPasswordSchema.validate(req.body, { abortEarly: false })
+
+        if (error) {
+            res.status(400).json({ message: error.details.map(e => e.message) })
+        }
+        const { passwordToken, newPassword } = req.body
+
+        const existUser = await User.findOne({ forgetPasswordOTP: passwordToken, forgetPasswordotpExpires: { $gt: Date.now() } })
+
+        if (!existUser) {
+            res.status(400).json({ message: "invalid token" })
+        }
+
+        const crypted = await bcrypt.hash(newPassword,12)
+        existUser.password = crypted
+        existUser.forgetPasswordotpExpires =undefined
+        existUser.forgetPasswordOTP =undefined
+
+        await existUser.save()
+
+        res.status(200).json({ message: " u rested password successfully " })
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "internal server error" })
+    }
+})
 module.exports = router
 
