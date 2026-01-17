@@ -99,9 +99,11 @@ router.post("/verify-otp", async function (req, res) {
         existUser.isVerify = true
         existUser.otp = undefined
         existUser.otpExpires = undefined
+        const token = jwt.sign({ id: existUser._id, role: existUser.role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_expiresIn })
+
         await existUser.save()
 
-        res.status(201).json({ message: "verified" })
+        res.status(201).json({ message: "verified" , token: token})
 
     } catch (error) {
         console.log(error)
@@ -130,12 +132,12 @@ router.post("/resend-otp", async function (req, res) {
         }
 
         // prevent SPAM
-        if (Date.now()<existUser.otpExpires){
+        if (Date.now() < existUser.otpExpires) {
             res.status(400).json({ message: "cant send otp agin try again later" })
 
         }
 
-            const otp = otpGenerator.generate(6, { digits: true })
+        const otp = otpGenerator.generate(6, { digits: true })
 
         const otpExpires = Date.now() + 1000 * 60 * 15
 

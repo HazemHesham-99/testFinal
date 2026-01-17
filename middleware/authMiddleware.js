@@ -5,6 +5,7 @@ const jwt = require("jsonwebtoken")
 function authMiddleware(req, res, next) {
     try {
         const auth = req.headers["authorization"]
+        console.log(auth)
         if (!auth) {
             res.status(401).json({ message: "unauthorized1" })
         }
