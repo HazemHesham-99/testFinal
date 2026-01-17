@@ -8,6 +8,7 @@ const dotenv = require("dotenv").config()
 const { loginSchema, verifySchema, signinSchema, resendOTPSchema, fogetPsswordSchema, restPasswordSchema } = require("../validation/uservalidation")
 const { User } = require("../modle/user")
 const { sendEmail } = require("../utils/sendEmail")
+const { authMiddleware } = require("../middleware/authMiddleware")
 const router = express.Router()
 
 router.post("/login", async function (req, res) {
@@ -128,7 +129,13 @@ router.post("/resend-otp", async function (req, res) {
             res.status(400).json({ message: "already verified" })
         }
 
-        const otp = otpGenerator.generate(6, { digits: true })
+        // prevent SPAM
+        if (Date.now()<existUser.otpExpires){
+            res.status(400).json({ message: "cant send otp agin try again later" })
+
+        }
+
+            const otp = otpGenerator.generate(6, { digits: true })
 
         const otpExpires = Date.now() + 1000 * 60 * 15
 
@@ -165,7 +172,7 @@ router.post("/forget-password", async function (req, res) {
         }
 
         const forgetPasswordOTP = crypto.randomBytes(32).toString("hex")
-        const forgetPasswordotpExpires = Date.now() + 1000 * 60 *5
+        const forgetPasswordotpExpires = Date.now() + 1000 * 60 * 5
 
         existUser.forgetPasswordOTP = forgetPasswordOTP
         existUser.forgetPasswordotpExpires = forgetPasswordotpExpires
@@ -199,14 +206,31 @@ router.post("/reset-password", async function (req, res) {
             res.status(400).json({ message: "invalid token" })
         }
 
-        const crypted = await bcrypt.hash(newPassword,12)
+        const crypted = await bcrypt.hash(newPassword, 12)
         existUser.password = crypted
-        existUser.forgetPasswordotpExpires =undefined
-        existUser.forgetPasswordOTP =undefined
+        existUser.forgetPasswordotpExpires = undefined
+        existUser.forgetPasswordOTP = undefined
 
         await existUser.save()
 
         res.status(200).json({ message: " u rested password successfully " })
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "internal server error" })
+    }
+})
+
+router.get("/me", authMiddleware, async function (req, res) {
+    try {
+        const id = req.user.id
+
+        const user = await User.findById(id)
+        if (!user) {
+            res.status(400).json({ message: "user not found" })
+        }
+
+        res.json.apply(user)
 
     } catch (error) {
         console.log(error)
