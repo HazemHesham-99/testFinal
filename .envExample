@@ -1,1 +1,15 @@
-PORT
+PORT = 
+PRODUCTION = false
+CLIENT_ORIGIN= 
+
+CONNECTIONstring = 
+
+# email config
+TEST_EMAIL = 
+TEST_EMAIL_PASSWORD = 
+TEST_EMAIL_PORT = 587
+
+
+# JWT
+JWT_expiresIn = 
+JWT_SECRET =
