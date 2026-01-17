@@ -230,7 +230,7 @@ router.get("/me", authMiddleware, async function (req, res) {
             res.status(400).json({ message: "user not found" })
         }
 
-        res.json.apply(user)
+        res.json(user)
 
     } catch (error) {
         console.log(error)
