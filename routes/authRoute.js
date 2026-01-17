@@ -227,7 +227,7 @@ router.get("/me", authMiddleware, async function (req, res) {
     try {
         const id = req.user.id
 
-        const user = await User.findById(id)
+        const user = await User.findById(id ,{password : 0})
         if (!user) {
             res.status(400).json({ message: "user not found" })
         }
