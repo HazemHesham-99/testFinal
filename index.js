@@ -3,15 +3,20 @@ const express = require("express")
 const dotenv = require("dotenv").config()
 const cors = require("cors")
 const rateLimit = require("express-rate-limit")
+const path = require('path');
 
 const { connectDataBase } = require("./config/dbConfig")
 const authRoutes = require("./routes/authRoute")
+const userRoutes = require("./routes/userRoutes")
+const { upload } = require("./utils/upload")
 
 //app
 const app = express()
 const PORT = process.env.PORT || 3000
 
 // GLOBAL MIDDLEWARE
+app.use("/uploads",express.static(path.join(__dirname,"uploads")))
+app.use("/public",express.static(path.join(__dirname,"public")))
 
 app.use(express.json())
 app.use(cors({
@@ -23,14 +28,17 @@ const limiter = rateLimit({
     limit: 100
 })
 
+
+
 app.use(limiter)
 
 //Routes
-app.get("/", (req, res) => {
+app.get("/",(req, res) => {
     res.send("welcome to our website")
 })
 
 app.use("/api/v1/auth", authRoutes)
+app.use("/api/v1/users", userRoutes)
 
 
 // connect to database

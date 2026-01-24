@@ -51,7 +51,7 @@ router.post("/register", async function (req, res) {
             res.status(400).json({ message: error.details.map(e => e.message) })
         }
 
-        const { email, password } = req.body
+        const { email, password,name } = req.body
         const existUser = await User.findOne({ email })
 
         if (existUser) {
@@ -64,7 +64,7 @@ router.post("/register", async function (req, res) {
 
         const otpExpires = Date.now() + 1000 * 60 * 15
 
-        const user = await User.create({ email, password: hashedPassword, otp, otpExpires })
+        const user = await User.create({ email, password: hashedPassword, otp, otpExpires , name})
 
         await sendEmail(email, "OTP confirmition", `ur OTP is ${otp}`)
 
@@ -139,7 +139,7 @@ router.post("/resend-otp", async function (req, res) {
 
         const otp = otpGenerator.generate(6, { digits: true })
 
-        const otpExpires = Date.now() + 1000 * 60 * 15
+        const otpExpires = Date.now() + 1000 * 60 
 
         existUser.otp = otp
         existUser.otpExpires = otpExpires
@@ -181,9 +181,9 @@ router.post("/forget-password", async function (req, res) {
 
         await existUser.save()
 
-        const resetURL = `${process.env.CLIENT_ORIGIN}/reset-password/${forgetPasswordOTP}`
+        const resetURL = `${process.env.CLIENT_ORIGIN}reset-password/${forgetPasswordOTP}`
 
-        await sendEmail(email, "Reset password", `to reset password click this mail: ${resetURL}`)
+        await sendEmail(email, "Reset password", `to reset password click this mail: ${resetURL}`, `<p>click this link if u want to rest password: <a href="${resetURL}">${resetURL}</a></p>`)
 
         res.status(201).json({ message: " sent to ur inbox reset password link" })
 

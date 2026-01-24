@@ -1,14 +1,16 @@
-const joi =require("joi")
+const joi = require("joi")
 
-const loginSchema =joi.object({
-    email:joi.string().required().email(),
-    password: joi.string().min(4).required()
+const loginSchema = joi.object({
+    email: joi.string().required().email(),
+    password: joi.string().min(4).required(),
+    name: joi.string().min(3).required()
+
 
 })
 
-const signinSchema =joi.object({
-    email:joi.string().required().email(),
-    password: joi.string().min(4).required()
+const signinSchema = joi.object({
+    email: joi.string().required().email(),
+    password: joi.string().min(4).required(),
 
 })
 
@@ -26,10 +28,10 @@ const fogetPsswordSchema = joi.object({
     email: joi.string().email().required(),
 });
 
-const restPasswordSchema =joi.object({
-    passwordToken:joi.string().required(),
+const restPasswordSchema = joi.object({
+    passwordToken: joi.string().required(),
     newPassword: joi.string().min(4).required()
 
 })
 
-module.exports={loginSchema,verifySchema,signinSchema,resendOTPSchema,fogetPsswordSchema,restPasswordSchema}
+module.exports = { loginSchema, verifySchema, signinSchema, resendOTPSchema, fogetPsswordSchema, restPasswordSchema }

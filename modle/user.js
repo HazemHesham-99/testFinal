@@ -1,4 +1,6 @@
+const { string } = require("joi")
 const mongoose = require("mongoose")
+const path = require('path');
 
 const userSchema = mongoose.Schema(
     {
@@ -12,6 +14,12 @@ const userSchema = mongoose.Schema(
 
         forgetPasswordOTP: { type: String },
         forgetPasswordotpExpires: { type: Date },
+
+
+        //profile info
+        name:{type:String , required:true },
+        bio:{type:String , default:""},
+        profilePic: {type:String , default: path.join("public","default-profile-picture-male-icon.png")}
 
     }
 )

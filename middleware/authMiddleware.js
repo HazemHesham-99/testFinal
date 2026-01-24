@@ -5,14 +5,13 @@ const jwt = require("jsonwebtoken")
 function authMiddleware(req, res, next) {
     try {
         const auth = req.headers["authorization"]
-        console.log(auth)
         if (!auth) {
-            res.status(401).json({ message: "unauthorized1" })
+            res.status(401).json({ message: "unauthorized" })
         }
 
         const token = auth.split(" ")[1]
         if (!auth) {
-            res.status(401).json({ message: "unauthorized2" })
+            res.status(401).json({ message: "unauthorized" })
         }
 
         const payload = jwt.verify(token, process.env.JWT_SECRET)
@@ -21,7 +20,7 @@ function authMiddleware(req, res, next) {
         next()
     } catch (error) {
         console.log(error)
-        res.status(401).json({ message: "unauthorized3" })
+        res.status(401).json({ message: "unauthorized" })
 
     }
 }
