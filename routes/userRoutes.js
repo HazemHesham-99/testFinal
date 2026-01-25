@@ -4,28 +4,34 @@ const { upload } = require("../utils/upload")
 const { User } = require("../modle/user")
 const router = express.Router()
 
-router.put("/profile/update", authMiddleware, upload.single("profile"),async function (req, res) {
-    try { 
+router.put("/profile/update", authMiddleware, upload.single("profile"), async function (req, res) {
+    try {
         //get user id
-        const id=req.user.id
+        const id = req.user.id
 
-        console.log(id)
 
         // find user from database
         const user = await User.findById(id)
 
-        console.log(user)
 
         // get photopath
-        const path =req.file.path
+        const path = req.file?.path
+        if (path) {
+            user.profilePic = path
 
-        console.log(path)
+        }
+
+        //get bio
+        const bio = req.body?.bio
+        if (bio) {
+            user.bio = bio
+        }
+
 
         //save on database
-        user.profilePic= path
         await user.save()
 
-        res.json({message: " photo updated", path})
+        res.json({ message: " profile updated", path: user.profilePic , bio:user.bio })
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: "internal server error" })
