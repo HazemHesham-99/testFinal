@@ -34,4 +34,10 @@ const restPasswordSchema = joi.object({
 
 })
 
-module.exports = { loginSchema, verifySchema, signinSchema, resendOTPSchema, fogetPsswordSchema, restPasswordSchema }
+const updateProfileSchema=joi.object({
+    name : joi.string().min(3).optional(),
+    bio : joi.string().optional(),
+    profile : joi.optional()
+})
+
+module.exports = { loginSchema, verifySchema, signinSchema, resendOTPSchema, fogetPsswordSchema, restPasswordSchema , updateProfileSchema}

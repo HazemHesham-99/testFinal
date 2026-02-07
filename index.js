@@ -8,6 +8,8 @@ const path = require('path');
 const { connectDataBase } = require("./config/dbConfig")
 const authRoutes = require("./routes/authRoute")
 const userRoutes = require("./routes/userRoutes")
+const postsRoutes = require("./routes/postsRoute")
+const commentRoutes = require("./routes/commentRoute")
 const { upload } = require("./utils/upload")
 
 //app
@@ -39,6 +41,8 @@ app.get("/",(req, res) => {
 
 app.use("/api/v1/auth", authRoutes)
 app.use("/api/v1/users", userRoutes)
+app.use("/api/v1/posts", postsRoutes)
+app.use("/api/v1/comment", commentRoutes)
 
 
 // connect to database

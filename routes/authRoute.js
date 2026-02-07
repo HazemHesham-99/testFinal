@@ -15,23 +15,23 @@ router.post("/login", async function (req, res) {
     try {
         const { value, error } = signinSchema.validate(req.body, { abortEarly: false })
         if (error) {
-            res.status(400).json({ message: error.details.map(e => e.message) })
+            return res.status(400).json({ message: error.details.map(e => e.message) })
         }
 
         const { email, password } = req.body
         const user = await User.findOne({ email })
         if (!user) {
-            res.status(400).json({ message: "invalid crad2" })
+            return res.status(400).json({ message: "invalid crad2" })
         }
 
         const isMatch = await bcrypt.compare(password, user.password)
 
         if (!isMatch) {
-            res.status(400).json({ message: "invalid crad1" })
+            return res.status(400).json({ message: "invalid crad1" })
         }
 
         if (!user.isVerify) {
-            res.status(400).json({ message: "u are not varifaied", verify: false, email: user.email })
+            return res.status(400).json({ message: "u are not varifaied", verify: false, email: user.email })
         }
 
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_expiresIn })
@@ -48,23 +48,23 @@ router.post("/register", async function (req, res) {
     try {
         const { value, error } = loginSchema.validate(req.body, { abortEarly: false })
         if (error) {
-            res.status(400).json({ message: error.details.map(e => e.message) })
+            return res.status(400).json({ message: error.details.map(e => e.message) })
         }
 
-        const { email, password,name } = req.body
+        const { email, password, name } = req.body
         const existUser = await User.findOne({ email })
 
         if (existUser) {
-            res.status(409).json({ message: "user already exist" })
+            return res.status(409).json({ message: "user already exist" })
         }
 
         const hashedPassword = await bcrypt.hash(password, 12)
 
         const otp = otpGenerator.generate(6, { digits: true })
 
-        const otpExpires = Date.now() + 1000 * 60 * 15
+        const otpExpires = Date.now() + 1000 * 60
 
-        const user = await User.create({ email, password: hashedPassword, otp, otpExpires , name})
+        const user = await User.create({ email, password: hashedPassword, otp, otpExpires, name })
 
         await sendEmail(email, "OTP confirmition", `ur OTP is ${otp}`)
 
@@ -81,18 +81,18 @@ router.post("/verify-otp", async function (req, res) {
     try {
         const { value, error } = verifySchema.validate(req.body, { abortEarly: false })
         if (error) {
-            res.status(400).json({ message: error.details.map(e => e.message) })
+            return res.status(400).json({ message: error.details.map(e => e.message) })
         }
         const { email, otp } = req.body
 
         const existUser = await User.findOne({ email })
 
         if (!existUser) {
-            res.status(400).json({ message: "WRONG EMAIL" })
+            return res.status(400).json({ message: "WRONG EMAIL" })
         }
 
         if (otp != existUser.otp || Date.now < existUser.otpExpires) {
-            res.status(403).json({ message: "wrong OTP OR expired" })
+            return res.status(403).json({ message: "wrong OTP OR expired" })
         }
 
         //verify
@@ -103,7 +103,7 @@ router.post("/verify-otp", async function (req, res) {
 
         await existUser.save()
 
-        res.status(201).json({ message: "verified" , token: token})
+        res.status(201).json({ message: "verified", token: token })
 
     } catch (error) {
         console.log(error)
@@ -117,29 +117,29 @@ router.post("/resend-otp", async function (req, res) {
         const { value, error } = resendOTPSchema.validate(req.body, { abortEarly: false })
 
         if (error) {
-            res.status(400).json({ message: error.details.map(e => e.message) })
+            return res.status(400).json({ message: error.details.map(e => e.message) })
         }
         const { email } = req.body
 
         const existUser = await User.findOne({ email })
 
         if (!existUser) {
-            res.status(400).json({ message: "WRONG EMAIL" })
+            return res.status(400).json({ message: "WRONG EMAIL" })
         }
 
         if (existUser.isVerify) {
-            res.status(400).json({ message: "already verified" })
+            return res.status(400).json({ message: "already verified" })
         }
 
         // prevent SPAM
         if (Date.now() < existUser.otpExpires) {
-            res.status(400).json({ message: "cant send otp agin try again later" })
+            return res.status(400).json({ message: "cant send otp agin try again later" })
 
         }
 
         const otp = otpGenerator.generate(6, { digits: true })
 
-        const otpExpires = Date.now() + 1000 * 60 
+        const otpExpires = Date.now() + 1000 * 60
 
         existUser.otp = otp
         existUser.otpExpires = otpExpires
@@ -163,14 +163,14 @@ router.post("/forget-password", async function (req, res) {
         const { value, error } = fogetPsswordSchema.validate(req.body, { abortEarly: false })
 
         if (error) {
-            res.status(400).json({ message: error.details.map(e => e.message) })
+            return res.status(400).json({ message: error.details.map(e => e.message) })
         }
         const { email } = req.body
 
         const existUser = await User.findOne({ email })
 
         if (!existUser) {
-            res.status(400).json({ message: "WRONG EMAIL" })
+            return res.status(400).json({ message: "WRONG EMAIL" })
         }
 
         const forgetPasswordOTP = crypto.randomBytes(32).toString("hex")
@@ -198,14 +198,14 @@ router.post("/reset-password", async function (req, res) {
         const { value, error } = restPasswordSchema.validate(req.body, { abortEarly: false })
 
         if (error) {
-            res.status(400).json({ message: error.details.map(e => e.message) })
+            return res.status(400).json({ message: error.details.map(e => e.message) })
         }
         const { passwordToken, newPassword } = req.body
 
         const existUser = await User.findOne({ forgetPasswordOTP: passwordToken, forgetPasswordotpExpires: { $gt: Date.now() } })
 
         if (!existUser) {
-            res.status(400).json({ message: "invalid token" })
+            return res.status(400).json({ message: "invalid token" })
         }
 
         const crypted = await bcrypt.hash(newPassword, 12)
@@ -227,9 +227,9 @@ router.get("/me", authMiddleware, async function (req, res) {
     try {
         const id = req.user.id
 
-        const user = await User.findById(id ,{password : 0})
+        const user = await User.findById(id, { password: 0 })
         if (!user) {
-            res.status(400).json({ message: "user not found" })
+            return res.status(400).json({ message: "user not found" })
         }
 
         res.json(user)
