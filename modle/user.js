@@ -17,9 +17,13 @@ const userSchema = mongoose.Schema(
 
 
         //profile info
-        name:{type:String , required:true },
-        bio:{type:String , default:""},
-        profilePic: {type:String , default: path.join("public","default-profile-picture-male-icon.png")}
+        name: { type: String, required: true },
+        bio: { type: String, default: "" },
+        profilePic: { type: String, default: path.join("public", "default-profile-picture-male-icon.png") },
+
+
+        //chat info
+        socketId: String
 
     }
 )
