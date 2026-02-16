@@ -28,7 +28,7 @@ router.post("/createComment/:postId", authMiddleware, async function (req, res) 
         }
 
         const newcomment = await Comment.create({ text, postId, userId })
-        const comment = await Comment.findById(newcomment._id).populate('userId', 'profilePic')
+        const comment = await Comment.findById(newcomment._id).populate('userId', 'profilePic name')
 
 
         res.status(201).json({ message: "comment created", comment })
