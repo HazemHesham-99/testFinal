@@ -1,6 +1,7 @@
 const { Server } = require("socket.io")
 
 const privateHandlers = require("./privateHandlers")
+const notificationHandlers = require("./notificationHandlers")
 
 const {
     users,
@@ -60,8 +61,13 @@ module.exports = function initSocket(server) {
             username
         })
 
-        // ===== LOAD PRIVATE EVENTS =====
+        // ===== LOAD CHAT PRIVATE EVENTS =====
         privateHandlers(io, socket)
+
+        // ===== LOAD NOTIFICATION  PRIVATE EVENTS =====
+        notificationHandlers(io, socket)
+
+
 
         // ===== DISCONNECT =====
         socket.on("disconnect", () => {

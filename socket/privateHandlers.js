@@ -5,7 +5,23 @@ const {
 } = require("./userStore")
 
 module.exports = function privateHandlers(io, socket) {
+    const { userId, username } = socket
 
+    // Get current user info - ADD THIS
+    socket.on('get-current-user', () => {
+        console.log(`📋 User ${userId} requested current user info`)
+        socket.emit('current-user', {
+            userId,
+            username
+        })
+    })
+
+    // Get online users - ADD THIS (useful for refreshing)
+    socket.on('get-online-users', () => {
+        const { getAllUsers } = require('./userStore')
+        const onlineUsers = getAllUsers().filter(u => u.userId !== userId)
+        socket.emit('online-users-list', onlineUsers)
+    })
     // ================= PRIVATE MESSAGE =================
     socket.on("send-private-message", async ({ toUserId, message }) => {
         try {
