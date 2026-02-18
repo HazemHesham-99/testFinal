@@ -3,6 +3,8 @@ const { authMiddleware } = require("../middleware/authMiddleware")
 const { Comment } = require("../modle/comment")
 const { exist } = require("joi")
 const { Post } = require("../modle/Posts")
+const { getUser } = require("../socket/userStore")
+const { Notification } = require("../modle/Notification")
 
 
 
@@ -28,8 +30,45 @@ router.post("/createComment/:postId", authMiddleware, async function (req, res) 
         }
 
         const newcomment = await Comment.create({ text, postId, userId })
-        const comment = await Comment.findById(newcomment._id).populate('userId', 'profilePic name')
 
+        // populate postId to use it in notification to get post owner
+        const comment = await Comment.findById(newcomment._id).populate('userId', 'profilePic name')  .populate('postId', 'userId') 
+
+        if (comment.userId.toString() !== userId.toString()) {
+
+
+            // Find recipient's socket
+            const postOwnerId = comment.userId._id.toString()
+            const recipient = getUser(postOwnerId)
+
+            if (recipient && recipient.socket && recipient.socket.notificationHelpers) {
+                console.log('📢 Creating comment notification via socket')
+
+                // Create notification using socket helpers
+                await recipient.socket.notificationHelpers.createNotification(
+                    comment.postId.userId,  // recipient (post owner)
+                    {
+                        type: 'COMMENT',
+                        message: `${req.user.username} commented on your post`,
+                        postId: comment.postId._id,
+                        sender: userId
+                    }
+                )
+            } else {
+                // If recipient offline, still save notification
+                console.log('💾 User offline, saving notification to database')
+
+                await Notification.create({
+                    recipient:  comment.userId._id,
+                    sender: userId,
+                    type: 'COMMENT',
+                    message: `${req.user.username} commented on your post`,
+                    postId: comment.postId,
+                    isRead: false
+                })
+            }
+
+        }
 
         res.status(201).json({ message: "comment created", comment })
     } catch (error) {
