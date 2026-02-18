@@ -22,17 +22,22 @@ module.exports = function privateHandlers(io, socket) {
         const onlineUsers = getAllUsers().filter(u => u.userId !== userId)
         socket.emit('online-users-list', onlineUsers)
     })
-    // ================= PRIVATE MESSAGE =================
+
+    // ===== SEND PRIVATE MESSAGE =====
+
     socket.on("send-private-message", async ({ toUserId, message }) => {
         try {
             const recipient = getUser(toUserId)
 
+            // Save message to database
             const newMessage = await Messages.create({
                 fromUserId: socket.userId,
                 toUserId,
                 message
             })
 
+
+            // Send message to recipient if online
             if (recipient) {
                 io.to(recipient.socketId).emit("receive-private-message", {
                     fromUserId: socket.userId,
@@ -40,13 +45,51 @@ module.exports = function privateHandlers(io, socket) {
                     message,
                     timestamp: newMessage.createdAt
                 })
+
+                // ===== CREATE MESSAGE NOTIFICATION =====
+
+                if (recipient.socket && recipient.socket.notificationHelpers) {
+
+                    try {
+                        const notif = await recipient.socket.notificationHelpers.createNotification(toUserId, {
+                            type: 'MESSAGE',
+                            message: `${socket.username} sent you a message: ${message.substring(0, 30)}${message.length > 30 ? '...' : ''}`,
+                            postId: null,
+                            sender: socket.userId,
+                            senderUsername: socket.username
+
+                        })
+
+                    } catch (notifError) {
+                        console.error('❌ Error in createNotification:', notifError)
+                    }
+                } else {
+
+                    if (socket.notificationHelpers) {
+                        const notif = await socket.notificationHelpers.createNotification(toUserId, {
+                            type: 'MESSAGE',
+                            message: `${socket.username} sent you a message: ${message.substring(0, 30)}${message.length > 30 ? '...' : ''}`,
+                            postId: null,
+                            sender: socket.userId
+                        })
+                    }
+                }
+            } else {
+                // offline user for future work
+                if (socket.notificationHelpers) {
+                    await socket.notificationHelpers.createNotification(toUserId, {
+                        type: 'MESSAGE',
+                        message: `${socket.username} sent you a message: ${message.substring(0, 30)}${message.length > 30 ? '...' : ''}`,
+                        postId: null,
+                        sender: socket.userId
+                    })
+                }
             }
 
         } catch (err) {
-            console.error("Private message error:", err)
+            console.error("❌ Private message error:", err)
         }
     })
-
 
     // ================= HISTORY =================
     socket.on("load-private-history", async ({ otherUserId }) => {
@@ -68,4 +111,7 @@ module.exports = function privateHandlers(io, socket) {
             console.error("History error:", err)
         }
     })
+
 }
+
+

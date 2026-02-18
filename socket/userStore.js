@@ -2,9 +2,10 @@
 
 const users = new Map()
 
-function addUser(userId, socketId, username) {
+function addUser(userId, socket, username) {
     users.set(userId, {
-        socketId,
+        socket: socket,
+        socketId:socket.id,
         username,
         connectedAt: new Date()
     })
@@ -30,6 +31,7 @@ function getAllUsers() {
     }))
 }
 
+//use it at index while configuration
 module.exports = {
     users,
     addUser,

@@ -43,7 +43,7 @@ module.exports = function initSocket(server) {
         }
 
         // ===== SAVE USER in RAM =====
-        addUser(userId, socket.id, username)
+        addUser(userId, socket, username)
 
         // ===== CONNECT EVENT =====
         socket.emit("chat:connected", {
@@ -60,13 +60,11 @@ module.exports = function initSocket(server) {
             socketId: socket.id,
             username
         })
-
-        // ===== LOAD CHAT PRIVATE EVENTS =====
-        privateHandlers(io, socket)
-
         // ===== LOAD NOTIFICATION  PRIVATE EVENTS =====
         notificationHandlers(io, socket)
 
+        // ===== LOAD CHAT PRIVATE EVENTS =====
+        privateHandlers(io, socket)
 
 
         // ===== DISCONNECT =====
