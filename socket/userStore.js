@@ -2,10 +2,10 @@
 
 const users = new Map()
 
-function addUser(userId, socket, username) {
+function addUser(userId, socket, username) {   
     users.set(userId, {
         socket: socket,
-        socketId:socket.id,
+        socketId: socket.id,
         username,
         connectedAt: new Date()
     })
@@ -16,7 +16,18 @@ function removeUser(userId) {
 }
 
 function getUser(userId) {
-    return users.get(userId)
+    if (!userId) return null
+
+    const userIdStr = userId.toString()
+    const user = users.get(userIdStr)
+
+    if (user) {
+        // IMPORTANT: Return the FULL user object with socket
+        return user
+    }
+
+    console.log(`❌ User ${userIdStr} NOT found in store`)
+    return null
 }
 
 function hasUser(userId) {

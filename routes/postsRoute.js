@@ -4,6 +4,8 @@ const { upload } = require("../utils/upload")
 const { Post } = require("../modle/Posts")
 const { Comment } = require("../modle/comment")
 const { User } = require("../modle/user")
+const { getUser } = require("../socket/userStore")
+const { Notification } = require("../modle/Notification")
 
 
 const router = express.Router()
@@ -54,7 +56,7 @@ router.get("/", async function (req, res) {
         const totalPages = Math.ceil(totalPosts / limit);
 
 
-        res.json({ message: "post fetched", posts, page:{totalPages,page,limit} })
+        res.json({ message: "post fetched", posts, page: { totalPages, page, limit } })
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: "internal server error" })
@@ -125,8 +127,49 @@ router.put("/:id/like", authMiddleware, async function (req, res) {
             post.likes = post.likes.filter((id) => id != userID)
         } else {
             post.likes.push(userID)
-        }
 
+            //===Create NOTIFICATION only for like==== 
+            // Don't notify if liking your own post
+            if (post.userId.toString() !== userID.toString()) {
+              
+
+                // Find recipient's socket
+                const postOwnerId = post.userId.toString()
+                const recipient = getUser(postOwnerId)
+                
+
+                    if (recipient && recipient.socket && recipient.socket.notificationHelpers) {
+                        console.log('📢 Creating like notification via socket')
+
+                        // Create notification using socket helpers
+                        await recipient.socket.notificationHelpers.createNotification(
+                            post.userId,  // recipient (post owner)
+                            {
+                                type: 'LIKE',
+                                message: `${req.user.username} liked your post`,
+                                postId: post._id,
+                                sender: userID
+                            }
+                        )
+                    } else {
+                        // If recipient offline, still save notification
+                                            console.log('💾 User offline, saving notification to database')
+
+                        await Notification.create({
+                            recipient: post.userId,
+                            sender: userID,
+                            type: 'LIKE',
+                            message: `${req.user.username} liked your post`,
+                            postId: post._id,
+                            isRead: false
+                        })
+                    }
+
+                }
+
+            
+        }
+        // save like and Unlike
         await post.save()
 
         res.json({ post, likes: post.likes.length })
