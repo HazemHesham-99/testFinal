@@ -42,7 +42,6 @@ router.post("/createComment/:postId", authMiddleware, async function (req, res) 
             const recipient = getUser(postOwnerId)
 
             if (recipient && recipient.socket && recipient.socket.notificationHelpers) {
-                console.log('📢 Creating comment notification via socket')
 
                 // Create notification using socket helpers
                 await recipient.socket.notificationHelpers.createNotification(
@@ -56,8 +55,7 @@ router.post("/createComment/:postId", authMiddleware, async function (req, res) 
                 )
             } else {
                 // If recipient offline, still save notification
-                console.log('💾 User offline, saving notification to database')
-
+               
                 await Notification.create({
                     recipient:  comment.userId._id,
                     sender: userId,
@@ -95,7 +93,7 @@ router.put("/:id/update", authMiddleware, async function (req, res) {
 
         }
 
-        res.status(201).json({ message: "comment created", comment })
+        res.status(201).json({ message: "comment updated", comment })
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: "internal server error" })

@@ -25,7 +25,7 @@ module.exports = async function socketAuth(socket, next) {
 
         socket.user = user.toObject()
         socket.userId = user._id.toString()
-        socket.username = user.username || user.name
+        socket.username =  user.name
 
         next()
 

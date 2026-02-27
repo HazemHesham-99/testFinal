@@ -11,14 +11,12 @@ const { Notification } = require("../modle/Notification")
 const router = express.Router()
 
 // create post
-router.post("/createPost", authMiddleware, upload.array("photos", 3), async function (req, res) {
+router.post("/createPost", authMiddleware, upload.array("photos", 5), async function (req, res) {
     try {
         //get user id
         const userId = req.user.id
-        console.log(req.files)
         // get photos
         const images = req.files.map(iteam => iteam.path)
-        console.log(images)
         //get caption
         const caption = req.body.caption
         if (!caption) {
@@ -74,9 +72,9 @@ router.put("/:id", authMiddleware, async function (req, res) {
             return res.status(400).json({ message: "no post with this ID" })
         }
         // check if user who created the post is the same
-        const x = post.userId._id
+        const verifyUser = post.userId._id
 
-        if (x.toString() != userID) {
+        if (verifyUser.toString() != userID) {
             return res.status(401).json({ message: "you can not update this post" })
         }
 
@@ -184,7 +182,6 @@ router.put("/:id/like", authMiddleware, async function (req, res) {
 router.get("/:id/comment", async function (req, res) {
     try {
         const postId = req.params.id
-        console.log(postId)
         const comments = await Comment.find({ postId }).populate("userId", "name profilePic").sort({ createdAt: -1 })
 
 

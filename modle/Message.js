@@ -3,7 +3,7 @@ const mongoose = require('mongoose')
 const MessageSchema = new mongoose.Schema({
     fromUserId: {
         type: mongoose.Types.ObjectId,
-        ref: 'users', // Matches your User model collection name
+        ref: 'users', 
         required: true
     },
     toUserId: {

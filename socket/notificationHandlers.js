@@ -9,7 +9,6 @@ module.exports = function notificationHandlers(io, socket) {
     // ===== FETCH NOTIFICATIONS =====
     socket.on('notification:fetch', async () => {
         try {
-            console.log(`📋 User ${userId} fetching notifications`)
             
             const notifications = await Notification.find({ recipient: userId })
                 .populate('sender', 'username profilePicture')
@@ -63,7 +62,6 @@ module.exports = function notificationHandlers(io, socket) {
                 .populate('sender', 'username profilePicture')
                 .sort({ createdAt: -1 })
                 .limit(50)
-                .lean()
             
             socket.emit('notification:list', notifications)
         } catch (error) {
@@ -80,7 +78,6 @@ module.exports = function notificationHandlers(io, socket) {
     
                 // Don't notify yourself
                 if (recipientId.toString() === senderId.toString()) {
-                    console.log('⏭️ Skipping self-notification')
                     return null
                 }
 

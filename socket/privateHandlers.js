@@ -1,4 +1,5 @@
 const { Messages } = require("../modle/Message")
+const { getAllUsers } = require('./userStore')
 const {
     users,
     getUser
@@ -7,18 +8,16 @@ const {
 module.exports = function privateHandlers(io, socket) {
     const { userId, username } = socket
 
-    // Get current user info - ADD THIS
+    // Get current user info 
     socket.on('get-current-user', () => {
-        console.log(`📋 User ${userId} requested current user info`)
         socket.emit('current-user', {
             userId,
             username
         })
     })
 
-    // Get online users - ADD THIS (useful for refreshing)
+    // Get online users 
     socket.on('get-online-users', () => {
-        const { getAllUsers } = require('./userStore')
         const onlineUsers = getAllUsers().filter(u => u.userId !== userId)
         socket.emit('online-users-list', onlineUsers)
     })
@@ -60,8 +59,8 @@ module.exports = function privateHandlers(io, socket) {
 
                         })
 
-                    } catch (notifError) {
-                        console.error('❌ Error in createNotification:', notifError)
+                    } catch (error) {
+                        console.error('❌ Error in createNotification:', error)
                     }
                 } else {
 

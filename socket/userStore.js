@@ -22,7 +22,6 @@ function getUser(userId) {
     const user = users.get(userIdStr)
 
     if (user) {
-        // IMPORTANT: Return the FULL user object with socket
         return user
     }
 

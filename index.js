@@ -7,7 +7,6 @@ const path = require('path');
 
 //socket.io server
 const http = require("http")
-const { Server } = require("socket.io")
 const initSocket = require("./socket")
 
 const { connectDataBase } = require("./config/dbConfig")
@@ -53,7 +52,6 @@ app.use("/api/v1/comment", commentRoutes)
 
 
 
-// ⭐⭐⭐ SOCKET.IO SETUP STARTS HERE ⭐⭐⭐
 
 
 // ===== SERVER =====
